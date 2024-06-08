@@ -1,5 +1,5 @@
 import {clsx} from "clsx";
-import React, {useEffect} from "react";
+import React from "react";
 
 export interface FormFieldData {
     value: string;
@@ -9,7 +9,7 @@ export interface FormFieldData {
 interface FormInputFieldProps {
     id: string;
     label: string;
-    type?: string;
+    type?: "text" | "password" | "email";
     placeholder: string;
     value?: string;
     error?: string;
@@ -33,7 +33,7 @@ export default function FormInputField({id, label, type = "text", placeholder, v
                 onChange={onChange}
                 onBlur={onBlur}
             />
-            {error && <span className="block text-red-500 pl-2 pt-1 text-sm">{error}</span>}
+            {error && <span className="block text-red-500 pl-2 pt-1.5 text-sm">{error}</span>}
         </div>
     );
 }
