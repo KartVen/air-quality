@@ -1,6 +1,7 @@
 import FormInputField, {FormFieldData} from "@/components/form/FormInputField";
 import React, {ChangeEvent, FormEvent, useState} from "react";
 import {EMAIL_VALIDATOR, FormErrors, PASSWORD_VALIDATOR, USERNAME_VALIDATOR} from "@/components/form/util/validators";
+import {isAnyFormFieldError, isSameValues} from "@/components/form/util/helpers";
 
 enum FormFieldType {
     USERNAME,
@@ -13,12 +14,7 @@ const PASSWORDS_ARE_DIFFERENT = "Podane hasła różnią się";
 
 export default function SignUpForm() {
     const [formFields, setFormFields] =
-        useState<{
-            username: FormFieldData,
-            email: FormFieldData,
-            password: FormFieldData,
-            password_2: FormFieldData
-        }>({
+        useState<{ [key: string]: FormFieldData; }>({
             username: {value: ''},
             email: {value: ''},
             password: {value: ''},
@@ -29,30 +25,19 @@ export default function SignUpForm() {
     const onSubmit = (e: FormEvent) => {
         e.preventDefault();
 
-        const password2Validated = PASSWORD_VALIDATOR.validate(formFields.password_2);
-        const password_2: FormFieldData = isSamePassword() ? password2Validated
-            : { ...formFields.password_2, error: PASSWORDS_ARE_DIFFERENT}
-
-        setFormFields({
+        const formFieldsValidated = {
             username: USERNAME_VALIDATOR.validate(formFields.username),
             email: EMAIL_VALIDATOR.validate(formFields.email),
             password: PASSWORD_VALIDATOR.validate(formFields.password),
-            password_2,
-        });
+            password_2: isSameValues(formFields.password.value, formFields.password_2.value)
+                ? PASSWORD_VALIDATOR.validate(formFields.password_2)
+                : {...formFields.password_2, error: PASSWORDS_ARE_DIFFERENT},
+        };
+        setFormFields(formFieldsValidated);
 
-
-        if (isAnyFieldError()) return;
+        if (isAnyFormFieldError(formFieldsValidated)) return;
         setProcessError("Błąd rejestracji");
     };
-
-    const isSamePassword = (): boolean => formFields.password === formFields.password_2;
-
-    const isAnyFieldError = () => {
-        return formFields.username.error
-            || formFields.email.error
-            || formFields.password.error
-            || formFields.password_2.error;
-    }
 
     const handleOnChange = (
         type: FormFieldType,
@@ -110,8 +95,7 @@ export default function SignUpForm() {
                     id="username"
                     label="Nazwa użytkownika"
                     placeholder="Twoja nazwa użytkownika"
-                    value={formFields.username.value}
-                    error={formFields.username.error}
+                    fieldData={formFields.username}
                     onChange={e => handleOnChange(FormFieldType.USERNAME, e)}
                     onBlur={() => handleOnBlur(FormFieldType.USERNAME)}
                 />
@@ -120,8 +104,7 @@ export default function SignUpForm() {
                     id="email"
                     label="Adres e-email"
                     placeholder="Twój adres e-mail"
-                    value={formFields.email.value}
-                    error={formFields.email.error}
+                    fieldData={formFields.email}
                     onChange={e => handleOnChange(FormFieldType.EMAIL, e)}
                     onBlur={() => handleOnBlur(FormFieldType.EMAIL)}
                 />
@@ -130,8 +113,7 @@ export default function SignUpForm() {
                     id="password"
                     label="Hasło"
                     placeholder="Twoje hasło"
-                    value={formFields.password.value}
-                    error={formFields.password.error}
+                    fieldData={formFields.password}
                     onChange={e => handleOnChange(FormFieldType.PASSWORD, e)}
                     onBlur={() => handleOnBlur(FormFieldType.PASSWORD)}
                 />
@@ -140,8 +122,7 @@ export default function SignUpForm() {
                     id="password_2"
                     label="Powtórz hasło"
                     placeholder="Twoje hasło"
-                    value={formFields.password_2.value}
-                    error={formFields.password_2.error}
+                    fieldData={formFields.password_2}
                     onChange={e => handleOnChange(FormFieldType.PASSWORD_2, e)}
                     onBlur={() => handleOnBlur(FormFieldType.PASSWORD_2)}
                 />

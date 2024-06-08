@@ -11,13 +11,12 @@ interface FormInputFieldProps {
     label: string;
     type?: "text" | "password" | "email";
     placeholder: string;
-    value?: string;
-    error?: string;
+    fieldData: FormFieldData
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onBlur: () => void
 }
 
-export default function FormInputField({id, label, type = "text", placeholder, value, error, onChange, onBlur}: FormInputFieldProps) {
+export default function FormInputField({id, label, type = "text", placeholder, fieldData: {value, error}, onChange, onBlur}: FormInputFieldProps) {
     return (
         <div>
             <label className="w-full block pl-2 pb-2 italic" htmlFor={id}>{label}</label>

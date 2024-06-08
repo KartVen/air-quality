@@ -15,7 +15,7 @@ export default function SignInAndSignUpPage() {
     return (
         <div className="flex h-screen">
             <div className="w-1/2 flex justify-center items-center bg-blue-900">
-                <div className="block p-4 border-2 border-white">
+                <div className="block p-4 border-2">
                     <h1 className="text-5xl font-semibold tracking-widest text-shadow-xl">Air Quality</h1>
                 </div>
             </div>

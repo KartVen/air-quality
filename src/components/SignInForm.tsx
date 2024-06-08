@@ -1,6 +1,7 @@
 import FormInputField, {FormFieldData} from "@/components/form/FormInputField";
 import React, {ChangeEvent, FormEvent, useState} from "react";
 import {FormErrors, PASSWORD_VALIDATOR, USERNAME_VALIDATOR} from "@/components/form/util/validators";
+import {isAnyFormFieldError} from "@/components/form/util/helpers";
 
 enum FormFieldType {
     USERNAME,
@@ -9,7 +10,7 @@ enum FormFieldType {
 
 export default function SignInForm() {
     const [formFields, setFormFields] =
-        useState<{ username: FormFieldData, password: FormFieldData }>({
+        useState<{ [key: string]: FormFieldData; }>({
             username: {value: ''},
             password: {value: ''}
         });
@@ -18,22 +19,20 @@ export default function SignInForm() {
     const onSubmit = (e: FormEvent) => {
         e.preventDefault();
 
-        setFormFields({
+        const formFieldsValidated = {
             username: USERNAME_VALIDATOR.validate(formFields.username),
             password: PASSWORD_VALIDATOR.validate(formFields.password),
-        });
+        };
+        setFormFields(formFieldsValidated);
 
-        if (formFields.username.error || formFields.password.error) return;
+        if (isAnyFormFieldError(formFieldsValidated)) return;
 
         const usernameValue = formFields.username.value.replace(/(<([^>]+)>)/ig, "");
         const passwordValue = formFields.password.value.replace(/(<([^>]+)>)/ig, "");
         setProcessError("Nieprawidłowy login lub hasło");
     };
 
-    const handleOnChange = (
-        type: FormFieldType,
-        e: ChangeEvent<HTMLInputElement>
-    ) => {
+    const handleOnChange = (type: FormFieldType, e: ChangeEvent<HTMLInputElement>) => {
         var newState: FormFieldData = {value: e.target.value, error: undefined};
         setFormFields({
             username: type == FormFieldType.USERNAME ? newState : formFields.username,
@@ -70,8 +69,7 @@ export default function SignInForm() {
                     id="username"
                     label="Nazwa użytkownika"
                     placeholder="Twoja nazwa użytkownika"
-                    value={formFields.username.value}
-                    error={formFields.username.error}
+                    fieldData={formFields.username}
                     onChange={e => handleOnChange(FormFieldType.USERNAME, e)}
                     onBlur={() => handleOnBlur(FormFieldType.USERNAME)}
                 />
@@ -80,8 +78,7 @@ export default function SignInForm() {
                     id="password"
                     label="Hasło"
                     placeholder="Twoje hasło"
-                    value={formFields.password.value}
-                    error={formFields.password.error}
+                    fieldData={formFields.password}
                     onChange={e => handleOnChange(FormFieldType.PASSWORD, e)}
                     onBlur={() => handleOnBlur(FormFieldType.PASSWORD)}
                 />
