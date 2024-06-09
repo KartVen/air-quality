@@ -1,5 +1,4 @@
 import Sidebar from "@/components/menu/Sidebar";
-import {FaCaretDown, FaPlus} from "react-icons/fa";
 import React from "react";
 import Header from "@/components/main/Header";
 

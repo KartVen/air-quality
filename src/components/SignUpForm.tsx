@@ -2,6 +2,10 @@ import FormInputField, {FormFieldData} from "@/components/form/FormInputField";
 import React, {ChangeEvent, FormEvent, useState} from "react";
 import {EMAIL_VALIDATOR, FormErrors, PASSWORD_VALIDATOR, USERNAME_VALIDATOR} from "@/components/form/util/validators";
 import {isAnyFormFieldError, isSameValues} from "@/components/form/util/helpers";
+import {authService} from "@/app/auth/api/authService";
+import ApiError from "@/shared/apiError";
+import {RegisterRes} from "@/app/auth/api/model/register";
+
 
 enum FormFieldType {
     USERNAME,
@@ -11,6 +15,7 @@ enum FormFieldType {
 }
 
 const PASSWORDS_ARE_DIFFERENT = "Podane hasła różnią się";
+const REGISTRATION_ERROR = "Błąd rejestracji! Spróbuj ponownie póżniej.";
 
 export default function SignUpForm() {
     const [formFields, setFormFields] =
@@ -36,8 +41,23 @@ export default function SignUpForm() {
         setFormFields(formFieldsValidated);
 
         if (isAnyFormFieldError(formFieldsValidated)) return;
-        setProcessError("Błąd rejestracji");
+
+        const registerBody = {
+            username: formFieldsValidated.username.value,
+            email: formFieldsValidated.email.value,
+            password: formFieldsValidated.password.value,
+        }
+
+        authService.register(registerBody)
+            .then((registerRes) => {
+                handleSuccessProcess(registerRes.data);
+            })
+            .catch(() => setProcessError(REGISTRATION_ERROR));
     };
+
+    const handleSuccessProcess = (response: RegisterRes) => {
+        console.log("Registration success", response);
+    }
 
     const handleOnChange = (
         type: FormFieldType,
