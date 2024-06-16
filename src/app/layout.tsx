@@ -1,22 +1,24 @@
-import type {Metadata} from "next";
-import {Inter} from "next/font/google";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
+import type {Metadata} from "next";
+import SessionNextProvider from "@/components/auth/SessionNextProvider";
 
 export const metadata: Metadata = {
-  title: "Air Quality",
-  description: "Aplikacja do monitorowania jakości powietrza",
+    title: "Air Quality",
+    description: "Aplikacja do monitorowania jakości powietrza",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="pl">
-      <body className={inter.className}>{children}</body>
-    </html>
-  );
+interface RootLayoutProps {
+    children: React.ReactNode;
+}
+
+export default function RootLayout({children}: Readonly<RootLayoutProps>) {
+    return (
+        <SessionNextProvider>
+            <html lang="pl">
+            <body className="font-primary">
+                {children}
+            </body>
+            </html>
+        </SessionNextProvider>
+    );
 }

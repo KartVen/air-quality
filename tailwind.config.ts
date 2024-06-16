@@ -13,6 +13,18 @@ const config: Config = {
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
+      backgroundColor: {
+        body: "rgb(14 28 67)",
+        primary: "rgb(23 37 84)",
+        "primary-hover": "rgb(21, 25, 44)"
+      },
+      fontFamily: {
+        'primary': ['ui-sans-serif', 'arial'],
+      },
+      gap: {
+        "cards-row": "2rem",
+        "card-between": "1.25rem"
+      }
     },
   },
   plugins: [],
