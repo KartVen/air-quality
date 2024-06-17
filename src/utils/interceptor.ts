@@ -14,18 +14,11 @@ const axiosApi = axios.create({
 })
 
 axiosApi.interceptors.request.use(
-    config => {
-        console.log(config.method, config.url, config);
-        return config;
-    },
-    error => {
-        return Promise.reject(error);
-    });
+    config => config,
+    error => Promise.reject(error));
 
 axiosApi.interceptors.response.use(
-    response => {
-        return response;
-    },
+    response => response,
     error => {
         let status: number | undefined = undefined;
         let data: string | undefined = undefined

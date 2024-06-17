@@ -5,6 +5,7 @@ import {FormErrors, PASSWORD_VALIDATOR, EMAIL_VALIDATOR} from "@/components/auth
 import {isAnyFormFieldError} from "@/components/auth/form/utils/helpers";
 import {signIn} from "next-auth/react";
 import authService from "@/utils/auth/authService";
+import {useRouter} from "next/navigation";
 
 enum FormFieldType {
     EMAIL,
@@ -20,6 +21,7 @@ export default function SignInForm() {
             password: {value: ''}
         });
     const [processError, setProcessError] = useState<string | null>();
+    const router = useRouter();
 
     const onSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -36,6 +38,14 @@ export default function SignInForm() {
             formFieldsValidated.email.value,
             formFieldsValidated.password.value,
         )
+            .then(res => {
+                console.log(res);
+                return signIn('login', {
+                    ...res,
+                    redirect: false
+                })
+            })
+            .then(() => router.push("/"))
             .catch(() => setProcessError(BAD_CREDENTIALS));
     };
 

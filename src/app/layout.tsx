@@ -1,6 +1,7 @@
 import "./globals.css";
 import type {Metadata} from "next";
-import SessionNextProvider from "@/components/auth/SessionNextProvider";
+import React from "react";
+import SessionProviderWrapper from "@/components/auth/SessionProviderWrapper";
 
 export const metadata: Metadata = {
     title: "Air Quality",
@@ -13,12 +14,12 @@ interface RootLayoutProps {
 
 export default function RootLayout({children}: Readonly<RootLayoutProps>) {
     return (
-        <SessionNextProvider>
+        <SessionProviderWrapper>
             <html lang="pl">
             <body className="font-primary">
-                {children}
+            {children}
             </body>
             </html>
-        </SessionNextProvider>
+        </SessionProviderWrapper>
     );
 }

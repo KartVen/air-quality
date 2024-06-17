@@ -15,26 +15,26 @@ export default function AirQualityCard() {
     useEffect(() => {
         (async () => {
             if (!session) return null;
-            console.log(session.tokens.accessToken);
-            const data = await airService.getQuality<BriefQualityResponse>(
+            console.debug(session.tokens.accessToken);
+            await airService.getQuality<BriefQualityResponse>(
                 session.tokens.accessToken,
                 'Hetmańska 12', '35-045'
             )
                 .then(brief => setState({brief}))
                 .catch(err => {
-                    console.debug(err);
+                    console.log('err', err);
                     setState({error: true});
                 });
         })();
     }, [session]);
 
-    if (state.error && session) return (
+    /*if (state.error && session) return (
         <Card>
             <div className="flex flex-col justify-center font-semibold p-4">Błąd pobierania...</div>
         </Card>
-    );
+    );*/
 
-    if (!state.error && !state.brief && session) return (
+    if (!state.brief && session) return (
         <Card>
             <div className="flex flex-col justify-center font-semibold p-4">Ładowanie...</div>
         </Card>

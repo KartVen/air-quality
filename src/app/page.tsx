@@ -1,15 +1,15 @@
-'use client';
+"use client";
 import React from "react";
 import Layout from "@/components/layout/Layout";
 import WelcomeCard from "@/components/content/dashboard/WelcomeCard";
 import PlanCard from "@/components/content/dashboard/PlanCard";
 import SignInRequestBlock from "@/components/content/dashboard/SignInAdviceBlock";
-import usePersistentSession from "@/utils/auth/usePersistentSession";
 import DateTimeCard from "@/components/content/dashboard/DateTimeCard";
 import AirQualityCard from "@/components/content/dashboard/AirQualityCard";
+import {useSession} from "next-auth/react";
 
 export default function Home() {
-    const {session} = usePersistentSession();
+    const session = useSession();
 
     return (
         <Layout pageTitle="Dashboard">

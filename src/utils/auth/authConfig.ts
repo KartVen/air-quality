@@ -1,6 +1,6 @@
-import {DefaultSession, DefaultUser, NextAuthOptions, Session, User} from "next-auth";
+import {AuthOptions, DefaultSession, DefaultUser, Session, User} from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import {decodeTokenFromCredentials, JwtAQPayload} from "@/utils/auth/utils/token";
+import {decodeTokenFromCredentials, JwtAQPayload} from "@/utils/auth/utils/helpers";
 import {JwtPayload} from "jwt-decode";
 import {DefaultJWT, JWT} from "next-auth/jwt";
 import authService from "@/utils/auth/authService";
@@ -54,9 +54,9 @@ const authorize = async (credentials: Record<string, string> | undefined): Promi
     };
 };
 
-const nextAuthConfig: NextAuthOptions = {
+const authConfig: AuthOptions = {
     pages: {
-        signIn: '/sign-in',
+        signIn: '/signin',
         newUser: '/',
     },
     providers: [
@@ -77,6 +77,9 @@ const nextAuthConfig: NextAuthOptions = {
             authorize
         })
     ],
+    session: {
+        strategy: 'jwt'
+    },
     callbacks: {
         async jwt({token, user}): Promise<JWT> {
             return user ? {...user} : token;
@@ -102,6 +105,6 @@ const nextAuthConfig: NextAuthOptions = {
             await authService.logout();
         }
     }
-}
+};
 
-export default nextAuthConfig;
+export default authConfig;

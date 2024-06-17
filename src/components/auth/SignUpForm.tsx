@@ -8,8 +8,9 @@ import {
     USERNAME_VALIDATOR
 } from "@/components/auth/form/utils/validators";
 import {isAnyFormFieldError, isSameValues} from "@/components/auth/form/utils/helpers";
-import {signIn} from "next-auth/react";
 import authService from "@/utils/auth/authService";
+import {signIn} from "next-auth/react";
+import {useRouter} from "next/navigation";
 
 enum FormFieldType {
     USERNAME,
@@ -30,6 +31,7 @@ export default function SignUpForm() {
             password_2: {value: ''}
         });
     const [processError, setProcessError] = useState<string | null>();
+    const router = useRouter();
 
     const onSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -51,6 +53,14 @@ export default function SignUpForm() {
             formFieldsValidated.username.value,
             formFieldsValidated.password.value,
         )
+            .then(res => {
+                console.log(res);
+                return signIn('register', {
+                    ...res,
+                    redirect: false
+                })
+            })
+            .then(() => router.push("/"))
             .catch(() => setProcessError(REGISTRATION_ERROR));
     };
 

@@ -1,4 +1,3 @@
-"use client";
 import {WELCOME_SEQUENCE} from "@/components/content/dashboard/utils/constants";
 import Card from "@/components/content/dashboard/Card";
 import {useSession} from "next-auth/react";

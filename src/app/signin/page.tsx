@@ -8,7 +8,7 @@ export default function SignInPage() {
     return <AuthPageContent>
         <RightBlock label={SIGN_IN_LABEL} info={SIGN_IN_INFO}>
             <SignInForm/>
-            <SignChanger label="Nie masz konta?" newHref="/sign-up" linkLabel="Założ konto"/>
+            <SignChanger label="Nie masz konta?" newHref="/signup" linkLabel="Założ konto"/>
         </RightBlock>
     </AuthPageContent>;
 }

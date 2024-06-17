@@ -1,4 +1,3 @@
-"use client";
 import {useEffect, useState} from "react";
 import Card from "@/components/content/dashboard/Card";
 import {formatDate, formatTime} from "@/components/content/dashboard/utils/helpers";
