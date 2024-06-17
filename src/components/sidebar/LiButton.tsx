@@ -5,20 +5,20 @@ import {clsx} from "clsx";
 
 interface LiLinkProps {
     className?: string;
-    label: string,
-    onClick: MouseEventHandler<HTMLButtonElement>
+    onClick: MouseEventHandler<HTMLButtonElement>,
+    children?: React.ReactNode;
 }
 
-export default function LiButton({className = '', label, onClick}: LiLinkProps) {
+export default function LiButton({className = '', onClick, children}: LiLinkProps) {
     return (
         <li>
             <button
                 className={clsx(
-                    "block w-full px-4 py-3 bg-primary hover:bg-primary-hover transition-colors duration-300 rounded-2xl text-center",
+                    "w-full flex items-center justify-center px-4 py-3 bg-primary hover:bg-primary-hover transition-colors duration-300 rounded-2xl text-center",
                     className
                 )}
                 onClick={onClick}>
-                {label}
+                {children}
             </button>
         </li>
     );

@@ -16,3 +16,15 @@ export const formatTime = (date: Date) => {
     };
     return date.toLocaleTimeString('pl-PL', options);
 };
+
+export const formatDateTime = (date: Date) => {
+    const options: Intl.DateTimeFormatOptions = {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    };
+    return date.toLocaleDateString('pl-PL', options);
+};

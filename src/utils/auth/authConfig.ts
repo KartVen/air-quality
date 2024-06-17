@@ -1,6 +1,6 @@
 import {AuthOptions, DefaultSession, DefaultUser, Session, User} from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import {decodeTokenFromCredentials, JwtAQPayload} from "@/utils/auth/utils/helpers";
+import {decodeTokenFromCredentials, JwtAQPayload, Role} from "@/utils/auth/utils/helpers";
 import {JwtPayload} from "jwt-decode";
 import {DefaultJWT, JWT} from "next-auth/jwt";
 import authService from "@/utils/auth/authService";
@@ -18,7 +18,7 @@ declare module 'next-auth' {
         user: {
             id: number;
             username: string;
-            roles: string[]
+            roles: Role[]
             email: string;
             isVerified: boolean;
         };
@@ -58,6 +58,7 @@ const authConfig: AuthOptions = {
     pages: {
         signIn: '/signin',
         newUser: '/',
+
     },
     providers: [
         Credentials({

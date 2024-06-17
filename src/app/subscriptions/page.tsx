@@ -1,15 +1,12 @@
 import Layout from "@/components/layout/Layout";
-import {getServerSession} from "next-auth";
-import {redirect} from "next/navigation";
+import SubscriptionsTable from "@/components/content/subscriptions/SubscriptionsTable";
 
 export default function SubscriptionPage() {
-    const session = getServerSession();
-
-    if (!session) redirect('/');
-
     return (
         <Layout pageTitle="Subskrypcje">
-            <></>
+            <div>
+                <SubscriptionsTable/>
+            </div>
         </Layout>
     );
 }

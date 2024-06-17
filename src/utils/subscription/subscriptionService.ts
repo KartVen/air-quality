@@ -1,5 +1,6 @@
 import axiosApi from "@/utils/interceptor";
 import {concatBearer} from "@/utils/helpers";
+import PendingSubscription from "@/utils/subscription/models/pendingSubscription";
 
 interface UserSubscriptionService {
     request(bearer: string): Promise<void>;
@@ -8,12 +9,14 @@ interface UserSubscriptionService {
 }
 
 interface AdminSubscriptionService {
-    pending(bearer: string): Promise<void>;
+    pending(bearer: string): Promise<PendingSubscription[]>;
 
     approve(bearer: string, subscriptionId: number): Promise<void>;
 }
 
-interface SubscriptionService extends UserSubscriptionService, AdminSubscriptionService {
+interface SubscriptionService
+    extends UserSubscriptionService,
+        AdminSubscriptionService {
 }
 
 const subscriptionService: SubscriptionService = {
@@ -35,10 +38,11 @@ const subscriptionService: SubscriptionService = {
         });
     },
 
-    async pending(bearer: string): Promise<void> {
-        return await axiosApi.get("/subscriptions/pending/", {
+    async pending(bearer: string): Promise<PendingSubscription[]> {
+        return await axiosApi.get<{ subscriptions: PendingSubscription[] }>("/subscriptions/pending/", {
             headers: {Authorization: concatBearer(bearer)}
-        });
+        })
+            .then(res => res.data.subscriptions)
     }
 }
 

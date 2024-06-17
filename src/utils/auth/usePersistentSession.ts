@@ -1,3 +1,4 @@
+"use client";
 import {useEffect, useState} from 'react';
 import {useSession} from 'next-auth/react';
 import {Session} from "next-auth";
@@ -7,7 +8,7 @@ interface PersistentSession {
     status: 'authenticated' | 'unauthenticated' | 'loading',
 }
 
-function usePersistentSession() {
+export default function usePersistentSession(): PersistentSession {
     const {data: session, status} = useSession();
     const [persistentSession, setPersistentSession] = useState<PersistentSession>({
         session: session,
@@ -18,7 +19,5 @@ function usePersistentSession() {
         setPersistentSession({session, status});
     }, [session, status]);
 
-    return persistentSession;
+    return {...persistentSession};
 }
-
-export default usePersistentSession;

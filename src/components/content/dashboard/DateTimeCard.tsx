@@ -1,27 +1,17 @@
-import {useEffect, useState} from "react";
-import Card from "@/components/content/dashboard/Card";
+import Card from "@/components/content/utils/Card";
 import {formatDate, formatTime} from "@/components/content/dashboard/utils/helpers";
+import useDateTime from "@/utils/shared/useDateTime";
 
 export default function DateTimeCard() {
-    const [currentTime, setCurrentTime] = useState<Date | undefined>();
-
-    useEffect(() => {
-        setCurrentTime(new Date());
-
-        const intervalId = setInterval(() => {
-            setCurrentTime(new Date());
-        }, 1000);
-
-        return () => clearInterval(intervalId);
-    }, []);
+    const dateTime = useDateTime();
 
     return (
         <Card>
             <div className="h-full flex flex-col gap-2 justify-center items-center font-semibold">
-                {currentTime && (
+                {dateTime && (
                     <>
-                        <h2 className="text-4xl">{formatTime(currentTime)}</h2>
-                        <span>{formatDate(currentTime)}</span>
+                        <h2 className="text-4xl">{formatTime(dateTime)}</h2>
+                        <span>{formatDate(dateTime)}</span>
                     </>
                 )}
             </div>

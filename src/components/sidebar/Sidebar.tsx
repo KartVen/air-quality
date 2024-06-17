@@ -1,3 +1,4 @@
+"use client";
 import SidebarMenu from "@/components/sidebar/SidebarMenu";
 
 export default function Sidebar() {
