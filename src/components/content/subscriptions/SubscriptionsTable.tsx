@@ -7,10 +7,11 @@ import Card from "@/components/content/utils/Card";
 import CardHeader from "@/components/content/utils/CardHeader";
 import CardBody from "@/components/content/utils/CardBody";
 import { IoMdCheckmark } from "react-icons/io";
+import {useSession} from "next-auth/react";
 
 export default function SubscriptionsTable() {
-    const {session} = usePersistentSession();
-    const [subscriptions, setSubscriptions] = useState<PendingSubscription[] | undefined>()
+    const {data: session} = useSession();
+    const [subscriptions, setSubscriptions] = useState<PendingSubscription[]>()
 
     useEffect(() => {
         (async () => {
@@ -18,39 +19,40 @@ export default function SubscriptionsTable() {
                 return null;
             await subscriptionService.pending(session.tokens.accessToken)
                 .then(subs => setSubscriptions(subs))
-                .catch(err => {
-                    console.debug('err', err);
-                    setSubscriptions(undefined);
-                });
+                .catch(() => setSubscriptions([]));
         })();
     }, [session]);
 
-    const handleButtonClick = (username: string) => {
-        alert(`Nazwa użytkownika: ${username}`);
+    const handleApprove = (subscriptionId: number) => {
+        session && subscriptions && subscriptionService.approve(session.tokens.accessToken, subscriptionId)
+            .then(() => {
+                const filtered = subscriptions.filter(sub => sub.subscriptionId !== subscriptionId)
+                setSubscriptions(filtered);
+            })
     };
 
-    return (
+    return session && (
         <Card>
             <CardHeader value="Oczekujące subskrypcje"/>
             <CardBody>
                 <table className="min-w-full divide-y divide-gray-200">
-                    <thead>
-                    <tr>
+                    <thead className="border-b">
+                    <tr className="text-gray-400 italic">
                         <th>ID</th>
                         <th>Nazwa użytkownika</th>
                         <th>Email</th>
-                        <th>Akcja</th>
+                        <th className="pb-1"></th>
                     </tr>
                     </thead>
-                    <tbody>
-                    {subscriptions?.map(sub => (
-                        <tr key={sub.subscriptionId}>
-                            <td>{sub.subscriptionId}</td>
-                            <td>{sub.user.username}</td>
-                            <td>{sub.user.email}</td>
-                            <td>
+                    <tbody className="text-center">
+                    {subscriptions && subscriptions.map(({subscriptionId, user: {username, email}}) => (
+                        <tr key={subscriptionId}>
+                            <td>{subscriptionId}</td>
+                            <td>{username}</td>
+                            <td>{email}</td>
+                            <td className="py-1.5">
                                 <button
-                                    onClick={() => handleButtonClick(sub.user.username)}
+                                    onClick={() => handleApprove(subscriptionId)}
                                     className="bg-green-700 hover:bg-green-900 text-white px-3 py-1"
                                 >
                                     <IoMdCheckmark />

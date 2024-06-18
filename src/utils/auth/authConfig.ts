@@ -40,7 +40,7 @@ declare module 'next-auth/jwt' {
     }
 }
 
-const authorize = async (credentials: Record<string, string> | undefined): Promise<User | null> => {
+const authorize = async (credentials: Record<string, any> | undefined): Promise<User | null> => {
     if (!credentials) return null;
     const jwtPayload = decodeTokenFromCredentials(credentials);
     const {accessToken, refreshToken} = credentials;

@@ -1,4 +1,3 @@
-import EnhancedQualityResponse from "@/utils/air-quality/models/enhancedQualityResponse";
 import axiosApi from "@/utils/interceptor";
 import {concatBearer} from "@/utils/helpers";
 

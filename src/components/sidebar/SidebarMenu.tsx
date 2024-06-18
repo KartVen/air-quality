@@ -1,19 +1,39 @@
 import LiLink from "@/components/sidebar/LiLink";
 import SidebarGroup from "@/components/sidebar/SidebarGroup";
 import LiButton from "@/components/sidebar/LiButton";
-import React from "react";
-import {BiLogOut} from "react-icons/bi";
+import React, {useEffect, useState} from "react";
 import {isContainRole, Role} from "@/utils/auth/utils/helpers";
 import {GiUpgrade} from "react-icons/gi";
-import usePersistentSession from "@/utils/auth/usePersistentSession";
-import {signIn, signOut} from "next-auth/react";
+import subscriptionService from "@/utils/subscription/subscriptionService";
+import {useSession} from "next-auth/react";
+import SubscriptionStatus from "@/utils/subscription/models/subscriptionStatus";
+
+enum SubButtonMode {
+    ACTIVE,
+    HIDDEN,
+    BLOCK,
+}
 
 export default function SidebarMenu() {
+    const [subButtonMode, setSubButtonMode] =
+        useState<SubButtonMode>(SubButtonMode.HIDDEN);
+    const {data: session} = useSession();
 
-    const {session} = usePersistentSession();
+    useEffect(() => {
+        if (session) !session.user.isVerified
+            ? setSubButtonMode(SubButtonMode.HIDDEN)
+            : (async () => {
+                subscriptionService.status(session.tokens.accessToken)
+                    .then(status => {
+                        status === SubscriptionStatus.NOT_REQUESTED && setSubButtonMode(SubButtonMode.ACTIVE);
+                    })
+            })();
+    }, [session]);
 
     const handleUpgradePlan = () => {
-
+        session && subscriptionService.request(session.tokens.accessToken)
+            .then(() => setSubButtonMode(SubButtonMode.HIDDEN))
+            .catch(() => setSubButtonMode(SubButtonMode.HIDDEN))
     }
 
     return (
@@ -28,8 +48,11 @@ export default function SidebarMenu() {
                 )}
             </SidebarGroup>
             <SidebarGroup>
-                {session && !isContainRole(session, Role.SUBSCRIBED) && (
-                    <LiButton className="text-yellow-500" onClick={handleUpgradePlan}>Ulepsz do Pro&nbsp;
+                {session && !isContainRole(session, Role.SUBSCRIBED) && subButtonMode !== SubButtonMode.HIDDEN && (
+                    <LiButton className="text-yellow-500"
+                              onClick={handleUpgradePlan}
+                              disabled={subButtonMode === SubButtonMode.BLOCK}
+                    >Ulepsz do Pro&nbsp;
                         <GiUpgrade/></LiButton>
                 )}
             </SidebarGroup>

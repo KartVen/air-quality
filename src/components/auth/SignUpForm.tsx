@@ -10,7 +10,7 @@ import {
 import {isAnyFormFieldError, isSameValues} from "@/components/auth/form/utils/helpers";
 import authService from "@/utils/auth/authService";
 import {signIn} from "next-auth/react";
-import {useRouter} from "next/navigation";
+import {BadRequestApiError} from "@/utils/apiError";
 
 enum FormFieldType {
     USERNAME,
@@ -19,19 +19,22 @@ enum FormFieldType {
     PASSWORD_2
 }
 
+const defaultFormFieldsState: { [key: string]: FormFieldData; } = {
+    username: {value: ''},
+    email: {value: ''},
+    password: {value: ''},
+    password_2: {value: ''}
+}
+
 const PASSWORDS_ARE_DIFFERENT = "Podane hasła różnią się";
-const REGISTRATION_ERROR = "Błąd rejestracji! Spróbuj ponownie póżniej.";
+const REGISTRATION_ERROR = "Nieznany błąd rejestracji! Spróbuj ponownie później";
+const VALIDATION_ERROR = "Błąd rejestracji";
+const POST_REGISTRATION_ERROR = "Rejestracje udana! Zaloguj się, aby kontynuować";
 
 export default function SignUpForm() {
     const [formFields, setFormFields] =
-        useState<{ [key: string]: FormFieldData; }>({
-            username: {value: ''},
-            email: {value: ''},
-            password: {value: ''},
-            password_2: {value: ''}
-        });
+        useState<{ [key: string]: FormFieldData; }>(defaultFormFieldsState);
     const [processError, setProcessError] = useState<string | null>();
-    const router = useRouter();
 
     const onSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -54,14 +57,47 @@ export default function SignUpForm() {
             formFieldsValidated.password.value,
         )
             .then(res => {
-                console.log(res);
                 return signIn('register', {
-                    ...res,
-                    redirect: false
+                    ...res.tokens,
+                    redirect: true,
+                    callbackUrl: '/'
                 })
+                    .catch(err => {
+                        console.debug('signInErr', err);
+                        setFormFields(defaultFormFieldsState);
+                        return setProcessError(POST_REGISTRATION_ERROR);
+                    })
             })
-            .then(() => router.push("/"))
-            .catch(() => setProcessError(REGISTRATION_ERROR));
+            .catch(err => {
+                console.debug(err);
+                if (err instanceof BadRequestApiError) {
+                    const errors: { pointer: string, reason: string }[] = (err as BadRequestApiError).getData().errors;
+                    console.log(errors);
+                    let newFormFields = formFields;
+                    errors.forEach(({pointer}) => {
+                        switch (pointer) {
+                            case 'username':
+                                if (!formFields.username.error) newFormFields = {
+                                    ...newFormFields,
+                                    username: {...formFields.username, error: 'Nazwa użytkownika już istnieje'}
+                                };
+                                return;
+                            case 'email':
+                                if (!formFields.email.error) newFormFields = {
+                                    ...newFormFields,
+                                    email: {...formFields.email, error: 'Adres e-mail już istnieje'}
+                                };
+                                return;
+                            default:
+                                return;
+                        }
+                    })
+                    setFormFields(newFormFields);
+                    setProcessError(VALIDATION_ERROR);
+                    return;
+                }
+                setProcessError(REGISTRATION_ERROR);
+            });
     };
 
     const handleOnChange = (

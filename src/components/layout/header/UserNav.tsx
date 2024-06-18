@@ -9,7 +9,7 @@ export default function UserNav() {
     const {data: session} = useSession();
 
     return <div className="flex gap-4 font-semibold items-center">
-        {session && <span>{session.user.username}</span>}
+        {session && <span>{session.user.username}{!session.user.isVerified && ' (niezweryfikowany)'}</span>}
         {session
             ? <button className="flex items-center gap-1 text-red-600 hover:text-red-800"
                       onClick={() => signOut()}>Wyloguj się <LuLogIn/></button>

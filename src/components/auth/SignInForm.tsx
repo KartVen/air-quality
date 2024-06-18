@@ -5,23 +5,25 @@ import {FormErrors, PASSWORD_VALIDATOR, EMAIL_VALIDATOR} from "@/components/auth
 import {isAnyFormFieldError} from "@/components/auth/form/utils/helpers";
 import {signIn} from "next-auth/react";
 import authService from "@/utils/auth/authService";
-import {useRouter} from "next/navigation";
+import {redirect} from "next/navigation";
 
 enum FormFieldType {
     EMAIL,
     PASSWORD
 }
 
+const defaultFormFieldsState: { [key: string]: FormFieldData; } = {
+    email: {value: ''},
+    password: {value: ''}
+};
+
 const BAD_CREDENTIALS = "Nieprawidłowy login lub hasło";
+const POST_LOGIN_ERROR = 'Błąd logowania. Spróbuj ponownie później';
 
 export default function SignInForm() {
     const [formFields, setFormFields] =
-        useState<{ [key: string]: FormFieldData; }>({
-            email: {value: ''},
-            password: {value: ''}
-        });
+        useState<{ [key: string]: FormFieldData; }>(defaultFormFieldsState);
     const [processError, setProcessError] = useState<string | null>();
-    const router = useRouter();
 
     const onSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -39,13 +41,17 @@ export default function SignInForm() {
             formFieldsValidated.password.value,
         )
             .then(res => {
-                console.log(res);
                 return signIn('login', {
                     ...res,
-                    redirect: false
+                    redirect: true,
+                    callbackUrl: '/'
                 })
+                    .catch(err => {
+                        console.debug('signInErr', err);
+                        setFormFields(defaultFormFieldsState);
+                        return setProcessError(POST_LOGIN_ERROR);
+                    })
             })
-            .then(() => router.push("/"))
             .catch(() => setProcessError(BAD_CREDENTIALS));
     };
 
