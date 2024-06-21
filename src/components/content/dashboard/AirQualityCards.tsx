@@ -1,11 +1,12 @@
 import AQIndexCard from "@/components/content/dashboard/AQIndexCard";
-import React, {useEffect, useState} from "react";
-import EnhancedQualityResponse from "@/utils/air-quality/models/enhancedQualityResponse";
-import {isContainRole, Role} from "@/utils/auth/utils/helpers";
+import React, {useCallback, useEffect, useState} from "react";
+import EnhancedQualityResponse from "@/utils/air-quality/types/enhancedQualityResponse";
 import PollutantsCard from "@/components/content/dashboard/PollutantsCard";
 import airService from "@/utils/air-quality/airService";
 import {Session} from "next-auth";
-import {Status} from "@/utils/helpers";
+import {isContainRole} from "@/utils/methods";
+import Role from "@/utils/api/auth/types/role";
+import {Status} from "@/utils/types";
 
 export default function AirQualityCards({session}: { session: Session }) {
     const [quality, setQuality] = useState<{
@@ -13,20 +14,17 @@ export default function AirQualityCards({session}: { session: Session }) {
         status: Status,
     }>({status: Status.LOADING});
 
-    useEffect(() => {
-        (async () => {
-            await airService.getQuality<EnhancedQualityResponse>(
-                session.tokens.accessToken,
-                'Hetmańska 12', '35-045'
-            )
-                .then(res => {
-                    setQuality({response: res, status: Status.READY})
-                })
-                .catch(err => {
-                    setQuality({status: Status.ERROR});
-                });
-        })();
+    const fetchQualityData = useCallback(async () => {
+        return await airService.getQuality<EnhancedQualityResponse>(
+            session, 'Aleja Powstańców Warszawy 12', '35-959'
+        );
     }, [session]);
+
+    useEffect(() => {
+        fetchQualityData()
+            .then(res => setQuality({response: res, status: Status.READY}))
+            .catch(err => setQuality({status: Status.ERROR}));
+    }, [fetchQualityData]);
 
     return (
         <>

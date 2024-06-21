@@ -1,11 +1,10 @@
 "use client";
-import FormInputField, {FormFieldData, InputType} from "@/components/auth/form/FormInputField";
+import FormInputField, {FormFieldData, InputType} from "@/components/shared/form/FormInputField";
 import React, {ChangeEvent, FormEvent, useState} from "react";
-import {FormErrors, PASSWORD_VALIDATOR, EMAIL_VALIDATOR} from "@/components/auth/form/utils/validators";
-import {isAnyFormFieldError} from "@/components/auth/form/utils/helpers";
+import {FormErrors, PASSWORD_VALIDATOR, EMAIL_VALIDATOR} from "@/components/shared/form/utils/validators";
+import {isAnyFormFieldError} from "@/components/shared/form/utils/helpers";
 import {signIn} from "next-auth/react";
-import authService from "@/utils/auth/authService";
-import {redirect} from "next/navigation";
+import authService from "@/utils/api/auth/authService";
 
 enum FormFieldType {
     EMAIL,
@@ -41,8 +40,10 @@ export default function SignInForm() {
             formFieldsValidated.password.value,
         )
             .then(res => {
-                return signIn('login', {
-                    ...res,
+                const {accessToken, refreshToken} = res;
+                return signIn('credentials', {
+                    accessToken,
+                    refreshToken,
                     redirect: true,
                     callbackUrl: '/'
                 })

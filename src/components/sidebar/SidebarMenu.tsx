@@ -1,12 +1,14 @@
 import LiLink from "@/components/sidebar/LiLink";
 import SidebarGroup from "@/components/sidebar/SidebarGroup";
 import LiButton from "@/components/sidebar/LiButton";
-import React, {useEffect, useState} from "react";
-import {isContainRole, Role} from "@/utils/auth/utils/helpers";
+import React, {useCallback, useEffect, useState} from "react";
 import {GiUpgrade} from "react-icons/gi";
-import subscriptionService from "@/utils/subscription/subscriptionService";
+import subscriptionService from "@/utils/api/subscription/subscriptionService";
 import {useSession} from "next-auth/react";
-import SubscriptionStatus from "@/utils/subscription/models/subscriptionStatus";
+import SubscriptionStatus from "@/utils/api/subscription/models/subscriptionStatus";
+import {isContainRole} from "@/utils/methods";
+import Role from "@/utils/api/auth/types/role";
+import Path from "@/utils/path";
 
 enum SubButtonMode {
     ACTIVE,
@@ -23,7 +25,7 @@ export default function SidebarMenu() {
         if (session) !session.user.isVerified
             ? setSubButtonMode(SubButtonMode.HIDDEN)
             : (async () => {
-                subscriptionService.status(session.tokens.accessToken)
+                subscriptionService.status(session)
                     .then(status => {
                         status === SubscriptionStatus.NOT_REQUESTED && setSubButtonMode(SubButtonMode.ACTIVE);
                     })
@@ -31,7 +33,7 @@ export default function SidebarMenu() {
     }, [session]);
 
     const handleUpgradePlan = () => {
-        session && subscriptionService.request(session.tokens.accessToken)
+        session && subscriptionService.request(session)
             .then(() => setSubButtonMode(SubButtonMode.HIDDEN))
             .catch(() => setSubButtonMode(SubButtonMode.HIDDEN))
     }
@@ -39,11 +41,11 @@ export default function SidebarMenu() {
     return (
         <div className="flex flex-col gap-3">
             <SidebarGroup>
-                <LiLink href="/">Dashboard</LiLink>
+                <LiLink href={Path.HOME}>Dashboard</LiLink>
                 {session && (
                     <>
-                        {isContainRole(session, Role.ADMIN) && <LiLink href="/subscriptions">Subskrypcje</LiLink>}
-                        <LiLink href="/settings">Ustawienia</LiLink>
+                        {isContainRole(session, Role.ADMIN) && <LiLink href={Path.SUBSCRIPTIONS}>Subskrypcje</LiLink>}
+                        <LiLink href={Path.SETTINGS}>Ustawienia</LiLink>
                     </>
                 )}
             </SidebarGroup>

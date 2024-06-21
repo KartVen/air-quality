@@ -1,18 +1,18 @@
-import axiosApi from "@/utils/interceptor";
-import {concatBearer} from "@/utils/helpers";
+import axiosApi from "@/utils/api/axiosApi";
+import {concatBearer} from "@/utils/methods";
+import ApiService from "@/utils/api/apiService";
+import {Session} from "next-auth";
 
-interface AirService {
-    getQuality<T>(bearer: string, street: string, postalCode: string): Promise<T>;
+interface AirEndpoints {
+    getQuality<T>(session: Session, street: string, postalCode: string): Promise<T>;
 }
 
-const airService: AirService = {
-    async getQuality<T>(bearer: string, street: string, postalCode: string): Promise<T> {
-        const body = {street, postalCode};
-        return await axiosApi.post<T>("/getAirQuality/", body, {
-            headers: {Authorization: concatBearer(bearer)}
-        })
+class AirService extends ApiService implements AirEndpoints {
+    async getQuality<T>(session: Session, street: string, postalCode: string): Promise<T> {
+        return await axiosApi.post<T>("/getAirQuality/", {street, postalCode}, this.withAuthorization(session))
             .then(res => res.data);
     }
 }
 
+const airService = new AirService();
 export default airService;

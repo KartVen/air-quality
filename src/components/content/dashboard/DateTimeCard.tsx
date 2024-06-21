@@ -1,6 +1,6 @@
 import Card from "@/components/content/utils/Card";
 import {formatDate, formatTime} from "@/components/content/dashboard/utils/helpers";
-import useDateTime from "@/utils/shared/useDateTime";
+import useDateTime from "@/utils/hooks/useDateTime";
 
 export default function DateTimeCard() {
     const dateTime = useDateTime();

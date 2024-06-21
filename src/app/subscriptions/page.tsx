@@ -2,22 +2,22 @@
 import Layout from "@/components/layout/Layout";
 import SubscriptionsTable from "@/components/content/subscriptions/SubscriptionsTable";
 import {useSession} from "next-auth/react";
-import {redirect} from "next/navigation";
-import {isContainRole, Role} from "@/utils/auth/utils/helpers";
+import {isSessionStatusLoading, redirectIfNotRole, redirectIfUnauthenticated} from "@/utils/methods";
+import Role from "@/utils/api/auth/types/role";
+import LoadingPage from "@/components/layout/LoadingPage";
+import React from "react";
 
 export default function SubscriptionPage() {
-    const {data: session} = useSession();
+    const {data: session, status} = useSession();
 
-    if (!session) redirect("/signin");
+    if (isSessionStatusLoading(status))
+        return <LoadingPage/>;
+    redirectIfUnauthenticated(session);
+    redirectIfNotRole(session, Role.ADMIN);
 
-    if (session && !isContainRole(session, Role.ADMIN)) redirect("/");
-
-    if (session)
-        return (
-            <Layout pageTitle="Subskrypcje">
-                <SubscriptionsTable/>
-            </Layout>
-        );
-
-    return null;
+    return (
+        <Layout pageTitle="Subskrypcje">
+            <SubscriptionsTable/>
+        </Layout>
+    );
 }

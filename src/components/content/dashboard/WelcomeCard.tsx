@@ -2,9 +2,12 @@ import {WELCOME_SEQUENCE} from "@/components/content/dashboard/utils/constants";
 import Card from "@/components/content/utils/Card";
 import {useSession} from "next-auth/react";
 import {Session} from "next-auth";
+import {useEffect} from "react";
 
 export default function WelcomeCard() {
     const {data: session} = useSession();
+
+    useEffect(() => {}, [session]);
 
     const getVerifiedTitle = (session: Session) => !session.user.isVerified
         ? 'Użytkownik niezweryfikowany' : '';

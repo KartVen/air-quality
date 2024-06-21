@@ -1,16 +1,16 @@
 "use client";
-import FormInputField, {FormFieldData, InputType} from "@/components/auth/form/FormInputField";
+import FormInputField, {FormFieldData, InputType} from "@/components/shared/form/FormInputField";
 import React, {ChangeEvent, FormEvent, useState} from "react";
 import {
     EMAIL_VALIDATOR,
     FormErrors,
     PASSWORD_VALIDATOR,
     USERNAME_VALIDATOR
-} from "@/components/auth/form/utils/validators";
-import {isAnyFormFieldError, isSameValues} from "@/components/auth/form/utils/helpers";
-import authService from "@/utils/auth/authService";
+} from "@/components/shared/form/utils/validators";
+import {isAnyFormFieldError, isSameValues} from "@/components/shared/form/utils/helpers";
+import authService from "@/utils/api/auth/authService";
 import {signIn} from "next-auth/react";
-import {BadRequestApiError} from "@/utils/apiError";
+import {BadRequestApiError} from "@/utils/api/apiError";
 
 enum FormFieldType {
     USERNAME,
@@ -57,8 +57,10 @@ export default function SignUpForm() {
             formFieldsValidated.password.value,
         )
             .then(res => {
-                return signIn('register', {
-                    ...res.tokens,
+                const {accessToken, refreshToken} = res.tokens;
+                return signIn('credentials', {
+                    accessToken,
+                    refreshToken,
                     redirect: true,
                     callbackUrl: '/'
                 })
@@ -69,10 +71,8 @@ export default function SignUpForm() {
                     })
             })
             .catch(err => {
-                console.debug(err);
                 if (err instanceof BadRequestApiError) {
                     const errors: { pointer: string, reason: string }[] = (err as BadRequestApiError).getData().errors;
-                    console.log(errors);
                     let newFormFields = formFields;
                     errors.forEach(({pointer}) => {
                         switch (pointer) {

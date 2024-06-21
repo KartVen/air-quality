@@ -1,11 +1,11 @@
 import React from "react";
 import Card from "@/components/content/utils/Card";
-import BriefQualityResponse from "@/utils/air-quality/models/briefQualityResponse";
+import BriefQualityResponse from "@/utils/air-quality/types/briefQualityResponse";
 import {formatDateTime} from "@/components/content/dashboard/utils/helpers";
 import CardHeader from "@/components/content/utils/CardHeader";
 import CardBody from "@/components/content/utils/CardBody";
-import {Status} from "@/utils/helpers";
 import StatusNotReadyBlock from "@/components/shared/StatusNotReadyBlock";
+import {Status} from "@/utils/types";
 
 interface AQIndexCardProps {
     data: {

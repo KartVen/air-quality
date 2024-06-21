@@ -1,6 +1,3 @@
-import authConfig from "@/utils/auth/authConfig";
-import NextAuth from "next-auth";
-
-const auth = NextAuth(authConfig);
+import auth from "@/utils/auth";
 
 export {auth as GET, auth as POST};

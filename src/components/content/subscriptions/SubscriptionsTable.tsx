@@ -1,8 +1,7 @@
 "use client";
-import usePersistentSession from "@/utils/auth/usePersistentSession";
 import {useEffect, useState} from "react";
-import PendingSubscription from "@/utils/subscription/models/pendingSubscription";
-import subscriptionService from "@/utils/subscription/subscriptionService";
+import PendingSubscription from "@/utils/api/subscription/models/pendingSubscription";
+import subscriptionService from "@/utils/api/subscription/subscriptionService";
 import Card from "@/components/content/utils/Card";
 import CardHeader from "@/components/content/utils/CardHeader";
 import CardBody from "@/components/content/utils/CardBody";
@@ -17,14 +16,14 @@ export default function SubscriptionsTable() {
         (async () => {
             if (!session)
                 return null;
-            await subscriptionService.pending(session.tokens.accessToken)
+            await subscriptionService.pending(session)
                 .then(subs => setSubscriptions(subs))
                 .catch(() => setSubscriptions([]));
         })();
     }, [session]);
 
     const handleApprove = (subscriptionId: number) => {
-        session && subscriptions && subscriptionService.approve(session.tokens.accessToken, subscriptionId)
+        session && subscriptions && subscriptionService.approve(session, subscriptionId)
             .then(() => {
                 const filtered = subscriptions.filter(sub => sub.subscriptionId !== subscriptionId)
                 setSubscriptions(filtered);
@@ -38,10 +37,10 @@ export default function SubscriptionsTable() {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="border-b">
                     <tr className="text-gray-400 italic">
-                        <th>ID</th>
-                        <th>Nazwa użytkownika</th>
-                        <th>Email</th>
-                        <th className="pb-1"></th>
+                        <th className="w-[30%]">ID</th>
+                        <th className="w-[30%]">Nazwa użytkownika</th>
+                        <th className="w-[30%]">Email</th>
+                        <th className="w-[10%] pb-1"></th>
                     </tr>
                     </thead>
                     <tbody className="text-center">
