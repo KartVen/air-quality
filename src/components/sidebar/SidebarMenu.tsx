@@ -1,7 +1,7 @@
 import LiLink from "@/components/sidebar/LiLink";
 import SidebarGroup from "@/components/sidebar/SidebarGroup";
 import LiButton from "@/components/sidebar/LiButton";
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {GiUpgrade} from "react-icons/gi";
 import subscriptionService from "@/utils/api/subscription/subscriptionService";
 import {useSession} from "next-auth/react";

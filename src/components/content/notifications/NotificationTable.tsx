@@ -1,6 +1,5 @@
 "use client";
 import {FormEvent, useEffect, useState} from "react";
-import subscriptionService from "@/utils/api/subscription/subscriptionService";
 import Card from "@/components/content/utils/Card";
 import CardHeader from "@/components/content/utils/CardHeader";
 import CardBody from "@/components/content/utils/CardBody";
@@ -11,18 +10,25 @@ import NotificationResponse from "@/utils/api/notification/types/notificationRes
 import FormInput, {InputType} from "@/components/shared/form/FormInput";
 import FormSelect, {FormSelectOption} from "@/components/shared/form/FormSelect";
 import CompareStrategy from "@/utils/api/notification/types/compareStrategy";
+import CreateNotificationRequest from "@/utils/api/notification/types/createNotificationRequest";
 
 const rangeSigns: { value: CompareStrategy, label: string }[] = [
     {value: CompareStrategy.LESS_OR_EQUAL, label: '<='},
     {value: CompareStrategy.GREATER_OR_EQUAL, label: '>='}
 ] satisfies FormSelectOption[]
 
+interface NotificationRequest extends CreateNotificationRequest {
+    address_street: string,
+    address_postalCode: string,
+}
+
+
 export default function NotificationTable() {
     const {data: session} = useSession();
     const [notifications, setNotifications] = useState<NotificationResponse[]>([]);
     const [editingId, setEditingId] = useState<number | null>(null);
-    const [newNotification, setNewNotification] = useState<Partial<NotificationResponse>>({
-        compareStrategy: CompareStrategy.LESS_OR_EQUAL
+    const [newNotification, setNewNotification] = useState<Partial<NotificationRequest>>({
+        compareStrategy: CompareStrategy.LESS_OR_EQUAL,
     });
 
     useEffect(() => {
@@ -34,7 +40,7 @@ export default function NotificationTable() {
         })();
     }, [session]);
 
-    const handleOnChange = <T extends keyof Partial<NotificationResponse>>(key: T | string, value: NotificationResponse[T]) => {
+    const handleOnChange = <T extends keyof Partial<NotificationRequest>>(key: T | string, value: NotificationRequest[T]) => {
         setNewNotification(prevState => ({
             ...prevState,
             [key]: value,
@@ -42,39 +48,33 @@ export default function NotificationTable() {
     };
 
     const handleApprove = async (notificationId: number) => {
-        if (session && notifications) {
-            await subscriptionService.approve(session, notificationId);
-            const filtered = notifications.filter((notif) => notif.id !== notificationId);
-            setNotifications(filtered);
-        }
+        // TODO editing Approve
     };
 
     const handleEdit = (notificationId: number) => {
-        setEditingId(notificationId);
+        // TODO editing
     };
 
     const handleSave = async (notificationId: number) => {
-        const updatedNotification = notifications.find(n => n.id === notificationId);
-        if (!updatedNotification) return;
-
-        try {
-            /*await notificationService.edit(session, updatedNotification);*/
-            setEditingId(null);
-        } catch (error) {
-            console.error('Error saving notification', error);
-        }
+        // TODO editing Save
     };
 
     const onSubmit = (e: FormEvent) => {
         e.preventDefault();
 
-        try {
-            //const newNotif = await notificationService.create(session, newNotification);
-            //setNotifications([...notifications, newNotif]);
-            setNewNotification({});
-        } catch (error) {
-            console.error('Error adding notification', error);
-        }
+        const formFieldsValidated: CreateNotificationRequest = {
+            indexCode: newNotification.indexCode!,
+            indexValue: newNotification.indexValue!,
+            compareStrategy: newNotification.compareStrategy!,
+            address: {
+                street: newNotification.address_street!,
+                postalCode: newNotification.address_postalCode!,
+            }
+        };
+
+        session && notificationService.create(session, formFieldsValidated)
+            .then(res => setNotifications(prevState => ({...prevState, res})))
+            .catch(() => console.debug("Error adding notification"))
     };
 
     const mapRangeSignToLabel = (sign?: CompareStrategy) => {
@@ -175,15 +175,15 @@ export default function NotificationTable() {
                                 <FormInput id="address_street"
                                            className="px-3 py-2 bg-transparent text-center"
                                            placeholder="Ulica"
-                                           value={newNotification.address?.street ?? ''}
-                                           onChange={e => handleOnChange('address.street', e.target.value)}/>
+                                           value={newNotification.address_street ?? ''}
+                                           onChange={e => handleOnChange('address_street', e.target.value)}/>
                             </td>
                             <td>
                                 <FormInput id="address_postalCode"
                                            className="px-3 py-2 bg-transparent text-center"
                                            placeholder="Kod pocztowy"
-                                           value={newNotification.address?.postalCode ?? ''}
-                                           onChange={e => handleOnChange('address.postalCode', e.target.value)}/>
+                                           value={newNotification.address_postalCode ?? ''}
+                                           onChange={e => handleOnChange('address_postalCode', e.target.value)}/>
                             </td>
                             <td className="py-1.5">
                                 <button

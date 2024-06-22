@@ -1,7 +1,13 @@
-export default interface ApiError {
-    getCode(): number;
-    getMessage(): string;
-    getData(): any | undefined;
+export default abstract class ApiError {
+    abstract getCode(): number;
+    abstract getMessage(): string;
+    abstract getData(): any | undefined;
+}
+
+export class ServiceUnavailableApiError implements ApiError {
+    getCode = (): number => 503;
+    getMessage = (): string => "Service Unavailable";
+    getData = (): any | undefined => undefined;
 }
 
 export class InternalErrorApiError implements ApiError {

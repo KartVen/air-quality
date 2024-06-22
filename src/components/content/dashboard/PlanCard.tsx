@@ -19,7 +19,10 @@ export default function PlanCard() {
             <CardHeader value={YOUR_PLAN}/>
             <CardBody>
                 {session && (
-                    <PlanLabel plan={getPlan(session)}/>
+                    <>
+                        <PlanLabel plan={getPlan(session)}/>
+                        {!session.user.isVerified && <div className="text-sm text-red-500 text-center">Zweryfikuj konto, aby zmienić plan</div>}
+                    </>
                 )}
             </CardBody>
         </Card>

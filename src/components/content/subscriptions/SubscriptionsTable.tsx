@@ -5,7 +5,7 @@ import subscriptionService from "@/utils/api/subscription/subscriptionService";
 import Card from "@/components/content/utils/Card";
 import CardHeader from "@/components/content/utils/CardHeader";
 import CardBody from "@/components/content/utils/CardBody";
-import { IoMdCheckmark } from "react-icons/io";
+import {IoMdCheckmark} from "react-icons/io";
 import {useSession} from "next-auth/react";
 
 export default function SubscriptionsTable() {

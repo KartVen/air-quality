@@ -1,10 +1,10 @@
-import React, {useState, useEffect} from "react";
+import React, {useState} from "react";
 import Card from "@/components/content/utils/Card";
-import {mapUnit} from "@/utils/air-quality/methods/mapUnit";
+import {mapUnit} from "@/utils/api/air-quality/methods/mapUnit";
 import {clsx} from "clsx";
 import CardHeader from "@/components/content/utils/CardHeader";
 import CardBody from "@/components/content/utils/CardBody";
-import EnhancedQualityResponse from "@/utils/air-quality/types/enhancedQualityResponse";
+import EnhancedQualityResponse from "@/utils/api/air-quality/types/enhancedQualityResponse";
 import StatusNotReadyBlock from "@/components/shared/StatusNotReadyBlock";
 import {Status} from "@/utils/types";
 

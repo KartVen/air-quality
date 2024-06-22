@@ -1,5 +1,4 @@
 import axiosApi from "@/utils/api/axiosApi";
-import {concatBearer} from "@/utils/methods";
 import ApiService from "@/utils/api/apiService";
 import {Session} from "next-auth";
 

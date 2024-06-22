@@ -1,7 +1,7 @@
 "use client";
-import FormInputField, {FormFieldData, InputType} from "@/components/shared/form/FormInputField";
+import FormInputField, {FormFieldData} from "@/components/shared/form/FormInputField";
 import React, {ChangeEvent, FormEvent, useEffect, useState} from "react";
-import {FormErrors, USERNAME_VALIDATOR} from "@/components/shared/form/utils/validators";
+import {FormError, USERNAME_VALIDATOR} from "@/components/shared/form/utils/validators";
 import {isAnyFormFieldError} from "@/components/shared/form/utils/helpers";
 import {useSession} from "next-auth/react";
 import profileService from "@/utils/api/profile/profileService";
@@ -10,10 +10,14 @@ import {BadRequestApiError} from "@/utils/api/apiError";
 const NEW_USERNAME_ERROR = "Błąd zmiany nazwy użytkownika";
 const NEW_USERNAME_SUCCESS = "Zmieniono!";
 
+interface FormFields {
+    username: FormFieldData;
+}
+
 export default function UsernameChangeForm() {
     const {data: session, update: updateSession} = useSession();
     const [formFields, setFormFields] =
-        useState<{ username: FormFieldData; }>({
+        useState<FormFields>({
             username: {value: session ? session.user.username : ''}
         });
     const [isProcessSuccess, setIsProcessSuccess] = useState<boolean>(false);
@@ -27,26 +31,23 @@ export default function UsernameChangeForm() {
 
         const formFieldsValidated = {
             username: USERNAME_VALIDATOR.validate(formFields.username),
-        };
+        } satisfies FormFields;
         setFormFields(formFieldsValidated);
 
         if (isAnyFormFieldError(formFieldsValidated)) return;
 
         session && profileService.changeUsername(session, formFieldsValidated.username.value)
-            .then(() => {
-                const x = updateSession({
-                    ...session, user: {...session.user, username: formFieldsValidated.username.value}
-                })
-                    .then(() => setIsProcessSuccess(true))
-                    .catch(err => console.debug(err));
-                return x;
+            .then(() => updateSession({
+                ...session, user: {...session.user, username: formFieldsValidated.username.value}
             })
+                .then(() => setIsProcessSuccess(true))
+                .catch(err => console.debug(err)))
             .catch(err => {
-                console.debug(err);
+                console.info(err);
                 if (err instanceof BadRequestApiError) {
                     const errors: { pointer: string, reason: string }[] = (err as BadRequestApiError).getData().errors;
                     errors.forEach(({pointer}) => {
-                        (pointer === 'username' && !formFields.username.error) && setFormFields({
+                        (pointer === 'newUsername' && !formFields.username.error) && setFormFields({
                             username: {...formFields.username, error: 'Nazwa użytkownika już istnieje'}
                         });
                     })
@@ -61,9 +62,10 @@ export default function UsernameChangeForm() {
     const handleOnChange = (e: ChangeEvent<HTMLInputElement>) =>
         setFormFields({username: {value: e.target.value, error: undefined}});
 
-    const handleOnBlur = () => (USERNAME_VALIDATOR.isEmpty(formFields.username)) && setFormFields({
-        ...formFields, username: {...formFields.username, error: FormErrors.USERNAME_REQUIRED},
-    });
+    const handleOnBlur = () => (USERNAME_VALIDATOR.isEmpty(formFields.username)) &&
+        setFormFields(prevState => ({
+            username: {...prevState.username, error: FormError.USERNAME_REQUIRED},
+        }));
 
     return <div>
         <form className="flex flex-col gap-5" onSubmit={onSubmit}>

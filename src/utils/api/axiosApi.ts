@@ -2,7 +2,7 @@ import axios from "axios";
 import ApiError, {
     BadRequestApiError,
     ForbiddenApiError,
-    InternalErrorApiError,
+    InternalErrorApiError, ServiceUnavailableApiError,
     UnauthorizedApiError
 } from "@/utils/api/apiError";
 
@@ -10,6 +10,9 @@ const axiosApi = axios.create({
     baseURL: process.env.NEXT_PUBLIC_BASE_URL,
     headers: {
         'Accept': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Credentials': 'true'
     },
 })
 
@@ -25,7 +28,8 @@ axiosApi.interceptors.response.use(
         if (error.response) {
             status = error.response.status;
             data = error.response.data;
-        }
+        } else if (error.code == "ERR_NETWORK")
+            status = 503;
         let apiError: ApiError;
         switch (status) {
             case 400:
@@ -39,6 +43,9 @@ axiosApi.interceptors.response.use(
                 break;
             case 500:
                 apiError = new InternalErrorApiError(data);
+                break;
+            case 503:
+                apiError = new ServiceUnavailableApiError();
                 break;
             default:
                 apiError = {

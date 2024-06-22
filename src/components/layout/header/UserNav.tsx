@@ -1,6 +1,5 @@
 import React, {useEffect} from "react";
 import {signOut, useSession} from "next-auth/react";
-import {LuBell, LuLogIn, LuLogOut} from "react-icons/lu";
 import Link from "next/link";
 import {useRouter} from "next/navigation";
 import Path from "@/utils/path";

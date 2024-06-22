@@ -11,7 +11,6 @@ export const callbacks: Partial<CallbacksOptions> = {
         const nowInUnix = Math.floor(new Date().getTime() / 1000);
         if (nowInUnix > token.exp)
             return await refreshAccessToken(token);
-        console.debug("return token", token);
         return token;
     },
     async session({session, token}): Promise<Session> {

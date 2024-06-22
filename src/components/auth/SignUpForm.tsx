@@ -3,37 +3,51 @@ import FormInputField, {FormFieldData, InputType} from "@/components/shared/form
 import React, {ChangeEvent, FormEvent, useState} from "react";
 import {
     EMAIL_VALIDATOR,
-    FormErrors,
+    FormError, ProcessingError,
     PASSWORD_VALIDATOR,
     USERNAME_VALIDATOR
 } from "@/components/shared/form/utils/validators";
 import {isAnyFormFieldError, isSameValues} from "@/components/shared/form/utils/helpers";
 import authService from "@/utils/api/auth/authService";
 import {signIn} from "next-auth/react";
-import {BadRequestApiError} from "@/utils/api/apiError";
+import {BadRequestApiError, ServiceUnavailableApiError} from "@/utils/api/apiError";
 
-enum FormFieldType {
-    USERNAME,
-    EMAIL,
-    PASSWORD,
-    PASSWORD_2
+interface FormFields {
+    username: FormFieldData;
+    email: FormFieldData;
+    password: FormFieldData;
+    password_2: FormFieldData;
 }
 
-const defaultFormFieldsState: { [key: string]: FormFieldData; } = {
+const defaultFormFieldsValues: FormFields = {
     username: {value: ''},
     email: {value: ''},
     password: {value: ''},
     password_2: {value: ''}
 }
 
-const PASSWORDS_ARE_DIFFERENT = "Podane hasła różnią się";
-const REGISTRATION_ERROR = "Nieznany błąd rejestracji! Spróbuj ponownie później";
-const VALIDATION_ERROR = "Błąd rejestracji";
-const POST_REGISTRATION_ERROR = "Rejestracje udana! Zaloguj się, aby kontynuować";
+const formFieldsInputs: { id: keyof FormFields, type: InputType, [key: string]: string }[] = [
+    {
+        id: 'username', type: InputType.TEXT,
+        label: "Nazwa użytkownika", placeholder: "Twoja nazwa użytkownika",
+    },
+    {
+        id: "email", type: InputType.EMAIL,
+        label: "Adres e-email", placeholder: "Twój adres e-mail",
+    },
+    {
+        id: "password", type: InputType.PASSWORD,
+        label: "Hasło", placeholder: "Twoje hasło",
+    },
+    {
+        id: "password_2", type: InputType.PASSWORD,
+        label: "Powtórz hasło", placeholder: "Twoje hasło",
+    }
+];
 
 export default function SignUpForm() {
     const [formFields, setFormFields] =
-        useState<{ [key: string]: FormFieldData; }>(defaultFormFieldsState);
+        useState<FormFields>(defaultFormFieldsValues);
     const [processError, setProcessError] = useState<string | null>();
 
     const onSubmit = (e: FormEvent) => {
@@ -45,8 +59,8 @@ export default function SignUpForm() {
             password: PASSWORD_VALIDATOR.validate(formFields.password),
             password_2: isSameValues(formFields.password.value, formFields.password_2.value)
                 ? PASSWORD_VALIDATOR.validate(formFields.password_2)
-                : {...formFields.password_2, error: PASSWORDS_ARE_DIFFERENT},
-        };
+                : {...formFields.password_2, error: FormError.PASSWORDS_ARE_DIFFERENT},
+        } satisfies FormFields;
         setFormFields(formFieldsValidated);
 
         if (isAnyFormFieldError(formFieldsValidated)) return;
@@ -59,15 +73,11 @@ export default function SignUpForm() {
             .then(res => {
                 const {accessToken, refreshToken} = res.tokens;
                 return signIn('credentials', {
-                    accessToken,
-                    refreshToken,
-                    redirect: true,
-                    callbackUrl: '/'
+                    accessToken, refreshToken, redirect: true, callbackUrl: '/'
                 })
                     .catch(err => {
-                        console.debug('signInErr', err);
-                        setFormFields(defaultFormFieldsState);
-                        return setProcessError(POST_REGISTRATION_ERROR);
+                        setFormFields(defaultFormFieldsValues);
+                        return setProcessError(ProcessingError.POST_REGISTRATION_ERROR);
                     })
             })
             .catch(err => {
@@ -93,54 +103,46 @@ export default function SignUpForm() {
                         }
                     })
                     setFormFields(newFormFields);
-                    setProcessError(VALIDATION_ERROR);
+                    setProcessError(ProcessingError.VALIDATION_ERROR);
                     return;
                 }
-                setProcessError(REGISTRATION_ERROR);
+                if(err instanceof ServiceUnavailableApiError){
+                    setProcessError(ProcessingError.SERVICE_UNAVAILABLE)
+                    return;
+                }
+                setProcessError(ProcessingError.REGISTRATION_ERROR);
             });
     };
 
-    const handleOnChange = (
-        type: FormFieldType,
-        e: ChangeEvent<HTMLInputElement>
-    ) => {
-        const newState: FormFieldData = {value: e.target.value, error: undefined};
-        setFormFields({
-            username: type == FormFieldType.USERNAME ? newState : formFields.username,
-            email: type == FormFieldType.EMAIL ? newState : formFields.email,
-            password: type == FormFieldType.PASSWORD ? newState : formFields.password,
-            password_2: type == FormFieldType.PASSWORD_2 ? newState : formFields.password_2,
-        });
+    const handleOnChange = (field: keyof FormFields, e: ChangeEvent<HTMLInputElement>) => {
+        setFormFields(prevFormFields => ({
+            ...prevFormFields,
+            [field]: {value: e.target.value, error: undefined}
+        }));
     };
 
-    const handleOnBlur = (type: FormFieldType) => {
-        switch (type) {
-            case FormFieldType.USERNAME:
+    const handleOnBlur = (field: keyof FormFields) => {
+        switch (field) {
+            case 'username':
                 if (USERNAME_VALIDATOR.isEmpty(formFields.username))
-                    setFormFields({
-                        ...formFields,
-                        username: {...formFields.username, error: FormErrors.USERNAME_REQUIRED},
-                    });
+                    setFormFields(prevState => ({
+                        ...prevState,
+                        username: {...formFields.username, error: FormError.USERNAME_REQUIRED},
+                    }));
                 break;
-            case FormFieldType.EMAIL:
-                setFormFields({
-                    ...formFields,
+            case 'email':
+                setFormFields(prevState => ({
+                    ...prevState,
                     email: EMAIL_VALIDATOR.validate(formFields.email),
-                });
+                }));
                 break;
-            case FormFieldType.PASSWORD:
-                if (PASSWORD_VALIDATOR.isEmpty(formFields.password))
-                    setFormFields({
-                        ...formFields,
-                        password: {...formFields.password, error: FormErrors.PASSWORD_REQUIRED},
-                    });
-                break;
-            case FormFieldType.PASSWORD_2:
-                if (PASSWORD_VALIDATOR.isEmpty(formFields.password_2))
-                    setFormFields({
-                        ...formFields,
-                        password_2: {...formFields.password_2, error: FormErrors.PASSWORD_REQUIRED},
-                    });
+            case 'password':
+            case 'password_2':
+                if (PASSWORD_VALIDATOR.isEmpty(formFields[field]))
+                    setFormFields(prevState => ({
+                        ...prevState,
+                        [field]: {...formFields[field], error: FormError.PASSWORD_REQUIRED},
+                    }));
                 break;
         }
     };
@@ -151,41 +153,18 @@ export default function SignUpForm() {
                 {processError && <span className="block text-red-500 pb-5 text-center">{processError}</span>}
             </div>
             <form className="flex flex-col gap-5" onSubmit={onSubmit}>
-                <FormInputField
-                    id="username"
-                    label="Nazwa użytkownika"
-                    placeholder="Twoja nazwa użytkownika"
-                    fieldData={formFields.username}
-                    onChange={e => handleOnChange(FormFieldType.USERNAME, e)}
-                    onBlur={() => handleOnBlur(FormFieldType.USERNAME)}
-                />
-                <FormInputField
-                    type={InputType.EMAIL}
-                    id="email"
-                    label="Adres e-email"
-                    placeholder="Twój adres e-mail"
-                    fieldData={formFields.email}
-                    onChange={e => handleOnChange(FormFieldType.EMAIL, e)}
-                    onBlur={() => handleOnBlur(FormFieldType.EMAIL)}
-                />
-                <FormInputField
-                    type={InputType.PASSWORD}
-                    id="password"
-                    label="Hasło"
-                    placeholder="Twoje hasło"
-                    fieldData={formFields.password}
-                    onChange={e => handleOnChange(FormFieldType.PASSWORD, e)}
-                    onBlur={() => handleOnBlur(FormFieldType.PASSWORD)}
-                />
-                <FormInputField
-                    type={InputType.PASSWORD}
-                    id="password_2"
-                    label="Powtórz hasło"
-                    placeholder="Twoje hasło"
-                    fieldData={formFields.password_2}
-                    onChange={e => handleOnChange(FormFieldType.PASSWORD_2, e)}
-                    onBlur={() => handleOnBlur(FormFieldType.PASSWORD_2)}
-                />
+                {formFieldsInputs.map(field => (
+                    <FormInputField
+                        key={field.id}
+                        id={field.id}
+                        type={field.type}
+                        label={field.label}
+                        placeholder={field.placeholder}
+                        fieldData={formFields[field.id]}
+                        onChange={e => handleOnChange(field.id, e)}
+                        onBlur={() => handleOnBlur(field.id)}
+                    />
+                ))}
                 <div className="flex justify-center items-center pt-6">
                     <button
                         className="w-full p-3 rounded-2xl bg-blue-900 hover:bg-blue-800 font-semibold"

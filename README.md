@@ -11,5 +11,9 @@ Frontend of the air quality monitoring application
 ## Running
 
 ```bash
-npm run dev
+npm install
+```
+
+```bash
+npm run prod
 ```

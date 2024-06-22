@@ -1,4 +1,3 @@
-import {clsx} from "clsx";
 import React from "react";
 import FormInput from "@/components/shared/form/FormInput";
 
@@ -15,7 +14,7 @@ export interface FormFieldData {
 
 interface FormInputFieldProps {
     id: string;
-    label: string;
+    label?: string;
     type?: InputType;
     placeholder: string;
     fieldData: FormFieldData
@@ -26,7 +25,7 @@ interface FormInputFieldProps {
 export default function FormInputField({id, label, type = InputType.TEXT, placeholder, fieldData: {value, error}, onChange, onBlur}: FormInputFieldProps) {
     return (
         <div>
-            <label className="w-full block pl-2 pb-2 italic" htmlFor={id}>{label}</label>
+            {label && <label className="w-full block pl-2 pb-2 italic" htmlFor={id}>{label}</label>}
             <FormInput
                 id={id}
                 type={type}

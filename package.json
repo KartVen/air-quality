@@ -4,8 +4,10 @@
   "private": true,
   "author": "Krystian Kiełbasa <krystian.kielbasa@hotmail.com>",
   "type": "module",
+  "description": "Application for monitoring air quality",
   "scripts": {
     "dev": "next dev",
+    "prod": "next build && next start",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

@@ -1,27 +1,41 @@
 "use client";
 import FormInputField, {FormFieldData, InputType} from "@/components/shared/form/FormInputField";
 import React, {ChangeEvent, FormEvent, useState} from "react";
-import {FormErrors, PASSWORD_VALIDATOR, EMAIL_VALIDATOR} from "@/components/shared/form/utils/validators";
+import {
+    EMAIL_VALIDATOR,
+    FormError,
+    ProcessingError,
+    PASSWORD_VALIDATOR
+} from "@/components/shared/form/utils/validators";
 import {isAnyFormFieldError} from "@/components/shared/form/utils/helpers";
 import {signIn} from "next-auth/react";
 import authService from "@/utils/api/auth/authService";
+import {ServiceUnavailableApiError} from "@/utils/api/apiError";
 
-enum FormFieldType {
-    EMAIL,
-    PASSWORD
+interface FormFields {
+    email: FormFieldData;
+    password: FormFieldData;
 }
 
-const defaultFormFieldsState: { [key: string]: FormFieldData; } = {
+const defaultFormFieldsState: FormFields = {
     email: {value: ''},
     password: {value: ''}
 };
 
-const BAD_CREDENTIALS = "Nieprawidłowy login lub hasło";
-const POST_LOGIN_ERROR = 'Błąd logowania. Spróbuj ponownie później';
+const formFieldsInputs: { id: keyof FormFields, type: InputType, [key: string]: string }[] = [
+    {
+        id: "email", type: InputType.EMAIL,
+        label: "Adres e-email", placeholder: "Twój adres e-mail",
+    },
+    {
+        id: "password", type: InputType.PASSWORD,
+        label: "Hasło", placeholder: "Twoje hasło",
+    },
+];
 
 export default function SignInForm() {
     const [formFields, setFormFields] =
-        useState<{ [key: string]: FormFieldData; }>(defaultFormFieldsState);
+        useState<FormFields>(defaultFormFieldsState);
     const [processError, setProcessError] = useState<string | null>();
 
     const onSubmit = (e: FormEvent) => {
@@ -30,7 +44,7 @@ export default function SignInForm() {
         const formFieldsValidated = {
             email: EMAIL_VALIDATOR.validate(formFields.email),
             password: PASSWORD_VALIDATOR.validate(formFields.password),
-        };
+        } satisfies FormFields;
         setFormFields(formFieldsValidated);
 
         if (isAnyFormFieldError(formFieldsValidated)) return;
@@ -50,35 +64,40 @@ export default function SignInForm() {
                     .catch(err => {
                         console.debug('signInErr', err);
                         setFormFields(defaultFormFieldsState);
-                        return setProcessError(POST_LOGIN_ERROR);
+                        return setProcessError(ProcessingError.POST_LOGIN_ERROR);
                     })
             })
-            .catch(() => setProcessError(BAD_CREDENTIALS));
+            .catch(err => {
+                if(err instanceof ServiceUnavailableApiError){
+                    setProcessError(ProcessingError.SERVICE_UNAVAILABLE)
+                    return;
+                }
+                setProcessError(ProcessingError.BAD_CREDENTIALS)
+            });
     };
 
-    const handleOnChange = (type: FormFieldType, e: ChangeEvent<HTMLInputElement>) => {
-        const newState: FormFieldData = {value: e.target.value, error: undefined};
-        setFormFields({
-            email: type == FormFieldType.EMAIL ? newState : formFields.email,
-            password: type == FormFieldType.PASSWORD ? newState : formFields.password,
-        });
+    const handleOnChange = (field: keyof FormFields, e: ChangeEvent<HTMLInputElement>) => {
+        setFormFields(prevState => ({
+            ...prevState,
+            [field]: {value: e.target.value, error: undefined}
+        }));
     };
 
-    const handleOnBlur = (type: FormFieldType) => {
-        switch (type) {
-            case FormFieldType.EMAIL:
+    const handleOnBlur = (field: keyof FormFields) => {
+        switch (field) {
+            case 'email':
                 if (EMAIL_VALIDATOR.isEmpty(formFields.email))
-                    setFormFields({
-                        ...formFields,
-                        email: {...formFields.email, error: FormErrors.EMAIL_REQUIRED},
-                    });
+                    setFormFields(prevState => ({
+                        ...prevState,
+                        email: {...formFields.email, error: FormError.EMAIL_REQUIRED},
+                    }));
                 break;
-            case FormFieldType.PASSWORD:
+            case 'password':
                 if (PASSWORD_VALIDATOR.isEmpty(formFields.password))
-                    setFormFields({
-                        ...formFields,
-                        password: {...formFields.password, error: FormErrors.PASSWORD_REQUIRED},
-                    });
+                    setFormFields(prevState => ({
+                        ...prevState,
+                        password: {...formFields.password, error: FormError.PASSWORD_REQUIRED},
+                    }));
                 break;
         }
     };
@@ -89,24 +108,18 @@ export default function SignInForm() {
                 {processError && <span className="block text-red-500 pb-5 text-center">{processError}</span>}
             </div>
             <form className="flex flex-col gap-5" onSubmit={onSubmit}>
-                <FormInputField
-                    type={InputType.EMAIL}
-                    id="email"
-                    label="Email"
-                    placeholder="Twój adres e-mail"
-                    fieldData={formFields.email}
-                    onChange={e => handleOnChange(FormFieldType.EMAIL, e)}
-                    onBlur={() => handleOnBlur(FormFieldType.EMAIL)}
-                />
-                <FormInputField
-                    type={InputType.PASSWORD}
-                    id="password"
-                    label="Hasło"
-                    placeholder="Twoje hasło"
-                    fieldData={formFields.password}
-                    onChange={e => handleOnChange(FormFieldType.PASSWORD, e)}
-                    onBlur={() => handleOnBlur(FormFieldType.PASSWORD)}
-                />
+                {formFieldsInputs.map(field => (
+                    <FormInputField
+                        key={field.id}
+                        id={field.id}
+                        type={field.type}
+                        label={field.label}
+                        placeholder={field.placeholder}
+                        fieldData={formFields[field.id]}
+                        onChange={e => handleOnChange(field.id, e)}
+                        onBlur={() => handleOnBlur(field.id)}
+                    />
+                ))}
                 <div className="flex justify-center items-center pt-6">
                     <button
                         className="w-full p-3 rounded-2xl bg-blue-900 hover:bg-blue-800 font-semibold"

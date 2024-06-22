@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, {useEffect} from "react";
 import Layout from "@/components/layout/Layout";
 import WelcomeCard from "@/components/content/dashboard/WelcomeCard";
 import PlanCard from "@/components/content/dashboard/PlanCard";
@@ -9,9 +9,12 @@ import {useSession} from "next-auth/react";
 import AirQualityCards from "@/components/content/dashboard/AirQualityCards";
 import {isSessionStatusLoading} from "@/utils/methods";
 import LoadingPage from "@/components/layout/LoadingPage";
+import VerifyAccountTokenCard from "@/components/content/dashboard/VerifyAccountTokenCard";
 
 export default function Home() {
     const {data: session, status} = useSession();
+
+    useEffect(() => {}, [status, session]);
 
     if (isSessionStatusLoading(status))
         return <LoadingPage/>;
@@ -26,6 +29,14 @@ export default function Home() {
             ) : <SignInRequestBlock/>}
             <DateTimeCard/>
         </div>
-        {session && <AirQualityCards session={session}/>}
+        {session && (
+            <>
+                {!session.user.isVerified && <div>
+                    <VerifyAccountTokenCard/>
+                </div>}
+                {}
+                <AirQualityCards session={session}/>
+            </>
+        )}
     </Layout>;
 }

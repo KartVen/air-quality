@@ -5,10 +5,12 @@ import {useSession} from "next-auth/react";
 import {isSessionStatusLoading, redirectIfNotRole, redirectIfUnauthenticated} from "@/utils/methods";
 import Role from "@/utils/api/auth/types/role";
 import LoadingPage from "@/components/layout/LoadingPage";
-import React from "react";
+import React, {useEffect} from "react";
 
 export default function SubscriptionPage() {
     const {data: session, status} = useSession();
+
+    useEffect(() => {}, [status]);
 
     if (isSessionStatusLoading(status))
         return <LoadingPage/>;

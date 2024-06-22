@@ -21,6 +21,9 @@ const config: Config = {
       fontFamily: {
         'primary': ['ui-sans-serif', 'arial'],
       },
+      maxWidth: {
+        '1/2': '50%',
+      },
       gap: {
         "cards-row": "2rem",
         "card-between": "1.25rem"
