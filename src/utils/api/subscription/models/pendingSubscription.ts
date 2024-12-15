@@ -4,4 +4,5 @@ export default interface PendingSubscription {
     subscriptionId: number;
     user: BasicUserInfo;
     createdAt: string;
+    description: string;
 }

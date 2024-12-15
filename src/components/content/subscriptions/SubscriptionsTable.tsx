@@ -30,7 +30,10 @@ export default function SubscriptionsTable() {
             })
     };
 
-    return session && (
+    if (!session)
+        return null;
+
+    return (
         <Card>
             <CardHeader value="Oczekujące subskrypcje"/>
             <CardBody>
@@ -40,21 +43,23 @@ export default function SubscriptionsTable() {
                         <th className="w-[30%]">ID</th>
                         <th className="w-[30%]">Nazwa użytkownika</th>
                         <th className="w-[30%]">Email</th>
+                        <th className="w-[30%]">Uwagi</th>
                         <th className="w-[10%] pb-1"></th>
                     </tr>
                     </thead>
                     <tbody className="text-center">
-                    {subscriptions && subscriptions.map(({subscriptionId, user: {username, email}}) => (
+                    {subscriptions && subscriptions.map(({subscriptionId, user: {username, email}, description}) => (
                         <tr key={subscriptionId}>
                             <td>{subscriptionId}</td>
                             <td>{username}</td>
                             <td>{email}</td>
+                            <td dangerouslySetInnerHTML={{__html: description || ""}}></td>
                             <td className="py-1.5">
                                 <button
                                     onClick={() => handleApprove(subscriptionId)}
                                     className="bg-green-700 hover:bg-green-900 text-white px-3 py-1"
                                 >
-                                    <IoMdCheckmark />
+                                    <IoMdCheckmark/>
                                 </button>
                             </td>
                         </tr>

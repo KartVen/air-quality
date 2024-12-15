@@ -5,7 +5,7 @@ import PendingSubscription from "@/utils/api/subscription/models/pendingSubscrip
 import SubscriptionStatus from "@/utils/api/subscription/models/subscriptionStatus";
 
 interface UserSubscriptionEndpoints {
-    request(session: Session): Promise<void>;
+    request(session: Session, desc: String): Promise<void>;
 
     status(session: Session): Promise<SubscriptionStatus>;
 }
@@ -16,11 +16,13 @@ interface AdminSubscriptionEndpoints {
     approve(session: Session, subscriptionId: number): Promise<void>;
 }
 
-interface SubscriptionEndpoints extends UserSubscriptionEndpoints, AdminSubscriptionEndpoints {}
+interface SubscriptionEndpoints extends UserSubscriptionEndpoints, AdminSubscriptionEndpoints {
+}
 
 class SubscriptionService extends ApiService implements SubscriptionEndpoints {
-    async request(session: Session): Promise<void> {
-        return await axiosApi.post("/subscriptions/", null, this.withAuthorization(session));
+    async request(session: Session, desc: String): Promise<void> {
+        console.log(desc, {description: desc});
+        return await axiosApi.post("/subscriptions/", {description: desc}, this.withAuthorization(session));
     }
 
     async status(session: Session): Promise<SubscriptionStatus> {
@@ -33,7 +35,9 @@ class SubscriptionService extends ApiService implements SubscriptionEndpoints {
     }
 
     async pending(session: Session): Promise<PendingSubscription[]> {
-        return await axiosApi.get<{ subscriptions: PendingSubscription[] }>("/admin/subscriptions/pending/", this.withAuthorization(session))
+        return await axiosApi.get<{
+            subscriptions: PendingSubscription[]
+        }>("/admin/subscriptions/pending/", this.withAuthorization(session))
             .then(res => res.data.subscriptions);
     }
 }
